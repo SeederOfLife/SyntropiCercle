@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Syntropic Design Generator</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background-color: #f4f4f4; }
+        .container { max-width: 600px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); }
+        label, select, input, button { display: block; margin: 10px 0; width: 100%; }
+        #output { margin-top: 20px; padding: 10px; border: 1px solid #ccc; border-radius: 4px; background: #fff; }
+        button { padding: 10px; background-color: #4CAF50; color: white; border: none; cursor: pointer; border-radius: 4px; }
+        button:hover { background-color: #45a049; }
+        .nav-buttons { display: flex; gap: 10px; margin-top: 20px; }
+        @media (max-width: 600px) { .nav-buttons { flex-direction: column; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Syntropic Agroforestry Design Generator</h2>
+        <label for="climate">Climate:</label>
+        <select id="climate" onchange="saveSelection()">
+            <option value="tropical">Tropical</option>
+            <option value="temperate">Temperate</option>
+            <option value="arid">Arid</option>
+        </select>
+        
+        <label for="soil">Soil Type:</label>
+        <select id="soil" onchange="saveSelection()">
+            <option value="sandy">Sandy</option>
+            <option value="clay">Clay</option>
+            <option value="loam">Loam</option>
+        </select>
+        
+        <label for="space">Available Space (m²):</label>
+        <input type="number" id="space" min="1" oninput="saveSelection()">
+        
+        <button onclick="generateDesign()">Generate Design</button>
+        
+        <div class="nav-buttons">
+            <button onclick="window.location.href='circle.html'">Go to Circular Design</button>
+        </div>
+        
+        <div id="output"></div>
+    </div>
+    
+    <script>
+        let plants = {
+            tropical: {
+                sandy: { pioneer: ["Coconut", "Sweet Potato"], secondary: ["Papaya", "Coffee"], climax: ["Avocado", "Brazil Nut"] },
+                clay: { pioneer: ["Pumpkin"], secondary: ["Elderberry"], climax: ["Walnut"] }
+            }
+        };
+
+        function saveSelection() {
+            localStorage.setItem("climate", document.getElementById("climate").value);
+            localStorage.setItem("soil", document.getElementById("soil").value);
+            localStorage.setItem("space", document.getElementById("space").value);
+        }
+
+        function loadSelection() {
+            document.getElementById("climate").value = localStorage.getItem("climate") || "tropical";
+            document.getElementById("soil").value = localStorage.getItem("soil") || "sandy";
+            document.getElementById("space").value = localStorage.getItem("space") || "";
+        }
+
+        function generateDesign() {
+            let climate = document.getElementById("climate").value;
+            let soil = document.getElementById("soil").value;
+            let design = plants[climate]?.[soil];
+
+            if (!design) {
+                document.getElementById("output").innerHTML = "<strong>No data available for this selection.</strong>";
+                return;
+            }
+
+            let outputHtml = "<h3>Suggested Plants</h3>";
+            ["pioneer", "secondary", "climax"].forEach(stage => {
+                outputHtml += `<strong>${stage.toUpperCase()}:</strong> 
+                <input type="text" value="${design[stage].join(", ")}" id="${stage}" oninput="saveEditedDesign()"><br>`;
+            });
+
+            document.getElementById("output").innerHTML = outputHtml;
+            localStorage.setItem("design", JSON.stringify(design));
+        }
+
+        function saveEditedDesign() {
+            let updatedDesign = {
+                pioneer: document.getElementById("pioneer").value.split(","),
+                secondary: document.getElementById("secondary").value.split(","),
+                climax: document.getElementById("climax").value.split(",")
+            };
+            localStorage.setItem("design", JSON.stringify(updatedDesign));
+        }
+
+        loadSelection();
+    </script>
+</body>
+</html>
